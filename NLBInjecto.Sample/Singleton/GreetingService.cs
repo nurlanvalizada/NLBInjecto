@@ -1,15 +1,12 @@
 namespace NLBInjecto.Sample.Singleton;
 
-public interface IGreetingService
+public interface ISingletonService
 {
-    void Greet(string name);
+    Guid GetGuid();
 }
 
-public class GreetingService : IGreetingService
+public class SingletonService : ISingletonService
 {
     private readonly Guid _guid = Guid.NewGuid();
-    public void Greet(string name)
-    {
-        Console.WriteLine($"Hello, {name} with {_guid}!");
-    }
+    public Guid GetGuid() => _guid;
 }

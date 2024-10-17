@@ -1,57 +1,42 @@
 namespace NLBInjecto;
 
-public class NlbServiceCollection : INlbServiceCollection, INlbServiceProvider
+public class NlbServiceCollection : INlbServiceCollection
 {
-    private readonly List<ServiceDescriptor> _services = [];
+    private readonly List<NlbServiceDescriptor> _services = [];
 
-    public void AddTransient<TService, TImplementation>() where TImplementation : TService
+    public void AddTransient<TService, TImplementation>(string? name = null) where TImplementation : TService
     {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient));
-    }
-    
-    public void AddTransient<TService, TImplementation>(string name) where TImplementation : TService
-    {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient, name));
-    }
-    
-    public void AddTransient(Type serviceType, Type implementationType)
-    {
-        _services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient));
+        _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TImplementation), NlbServiceLifetime.Transient, name));
     }
 
-    public void AddSingleton<TService, TImplementation>() where TImplementation : TService
+    public void AddTransient(Type serviceType, Type implementationType, string? name = null)
     {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton));
+        _services.Add(new NlbServiceDescriptor(serviceType, implementationType, NlbServiceLifetime.Transient, name));
+    }
+
+    public void AddSingleton<TService, TImplementation>(string? name = null) where TImplementation : TService
+    {
+        _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TImplementation), NlbServiceLifetime.Singleton, name));
     }
     
-    public void AddSingleton<TService, TImplementation>(string name) where TImplementation : TService
+    public void AddSingleton(Type serviceType, Type implementationType, string? name = null)
     {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton, name));
+        _services.Add(new NlbServiceDescriptor(serviceType, implementationType, NlbServiceLifetime.Singleton));
     }
     
-    public void AddSingleton(Type serviceType, Type implementationType)
+    public void AddScoped<TService, TImplementation>(string? name = null) where TImplementation : TService
     {
-        _services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton));
+        _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TImplementation), NlbServiceLifetime.Scoped, name));
     }
     
-    public void AddScoped<TService, TImplementation>() where TImplementation : TService
+    public void AddScoped(Type serviceType, Type implementationType, string? name = null)
     {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped));
+        _services.Add(new NlbServiceDescriptor(serviceType, implementationType, NlbServiceLifetime.Scoped));
     }
     
-    public void AddScoped<TService, TImplementation>(string name) where TImplementation : TService
+    public void AddDecorator<TService, TDecorator>(string? name = null) where TDecorator : TService
     {
-        _services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped, name));
-    }
-    
-    public void AddScoped(Type serviceType, Type implementationType)
-    {
-        _services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped));
-    }
-    
-    public void AddDecorator<TService, TDecorator>() where TDecorator : TService
-    {
-        var descriptor = _services.Find(s => s.ServiceType == typeof(TService));
+        var descriptor = _services.Find(s => s.ServiceType == typeof(TService) && s.Name == name);
         if (descriptor != null)
         {
             var originalImplementationType = descriptor.ImplementationType;
@@ -60,10 +45,10 @@ public class NlbServiceCollection : INlbServiceCollection, INlbServiceProvider
             _services.Remove(descriptor);
             
             // Add a new descriptor that wraps the original implementation within the decorator
-            _services.Add(new ServiceDescriptor(typeof(TService), provider =>
+            _services.Add(new NlbServiceDescriptor(typeof(TService), provider =>
             {
                 // Resolve the original service instance
-                var originalInstance = provider.CreateInstance(originalImplementationType);
+                var originalInstance = ((NlbServiceProviderSnapshot)provider).CreateInstance(originalImplementationType);
 
                 // Resolve the decorator with the original instance
                 return Activator.CreateInstance(typeof(TDecorator), originalInstance);
@@ -71,98 +56,13 @@ public class NlbServiceCollection : INlbServiceCollection, INlbServiceProvider
         }
     }
     
-    public object GetService(Type serviceType)
+    public NlbServiceDescriptor GetServiceDescriptor(Type serviceType, string? name = null)
     {
-       return GetService(serviceType, null);
-    }
-
-    public object GetService(Type serviceType, string? name)
-    {
-        var descriptor = _services.Find(s => s.ServiceType == serviceType && (name is null || s.Name == name));
-        if (descriptor == null)
-        {
-            throw new Exception($"Service of type {serviceType.Name} with name {name} is not registered.");
-        }
-        
-        // Use the factory function if available
-        if (descriptor.Factory != null)
-        {
-            return descriptor.Factory(this);
-        }
-
-        if (descriptor.Lifetime == ServiceLifetime.Singleton)
-        {
-            if (descriptor.Implementation == null)
-            {
-                descriptor.Implementation = CreateInstance(descriptor.ImplementationType);
-            }
-            return descriptor.Implementation;
-        }
-        
-        if (descriptor.Lifetime == ServiceLifetime.Scoped)
-        {
-            throw new InvalidOperationException("Cannot resolve scoped services from root provider.");
-        }
-
-        return CreateInstance(descriptor.ImplementationType);
-    }
-
-    public TService GetService<TService>()
-    {
-        return (TService)GetService(typeof(TService));
+        return _services.Find(s => s.ServiceType == serviceType && s.Name == name)!;
     }
     
-    public TService GetService<TService>(string? name)
+    public INlbServiceProvider BuildServiceProvider()
     {
-        return (TService)GetService(typeof(TService), name);
-    }
-    
-    public ServiceDescriptor GetServiceDescriptor(Type serviceType)
-    {
-        return _services.Find(s => s.ServiceType == serviceType)!;
-    }
-    
-    public Scope CreateScope()
-    {
-        return new Scope(this);
-    }
-    
-    public object CreateInstance(Type implementationType, Type[] genericArguments = null)
-    {
-        if (implementationType.IsGenericTypeDefinition)
-        {
-            if (genericArguments == null || genericArguments.Length == 0)
-                throw new InvalidOperationException("Generic type arguments required");
-
-            implementationType = implementationType.MakeGenericType(genericArguments);
-        }
-        
-        var constructors = implementationType.GetConstructors().OrderByDescending(c => c.GetParameters().Length);
-        foreach (var constructor in constructors)
-        {
-            var parameters = constructor.GetParameters();
-            var parameterInstances = new object[parameters.Length];
-
-            bool canResolveAllParameters = true;
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                try
-                {
-                    parameterInstances[i] = GetService(parameters[i].ParameterType);
-                }
-                catch
-                {
-                    canResolveAllParameters = false;
-                    break;
-                }
-            }
-
-            if (canResolveAllParameters)
-            {
-                return Activator.CreateInstance(implementationType, parameterInstances);
-            }
-        }
-
-        throw new Exception($"Cannot resolve parameters for {implementationType.Name}");
+        return new NlbServiceProviderSnapshot(_services);
     }
 }

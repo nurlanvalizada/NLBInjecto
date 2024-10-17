@@ -13,7 +13,6 @@
 
     <ItemGroup>
       <Folder Include="Decorator\" />
-      <Folder Include="Transient\" />
     </ItemGroup>
 
 </Project>
