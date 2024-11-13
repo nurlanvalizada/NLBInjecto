@@ -9,7 +9,7 @@ public class NlbServiceProviderSnapshot(INlbServiceCollection serviceCollection)
         var descriptor = _serviceDescriptors.First(s => s.ServiceType == serviceType && (name is null || s.Name == name));
         if(descriptor == null)
         {
-            throw new Exception($"Service of type {serviceType.Name} with name {name} is not registered.");
+            throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
         }
 
         if(descriptor.Lifetime == NlbServiceLifetime.Singleton)

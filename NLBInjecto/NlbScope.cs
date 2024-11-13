@@ -14,7 +14,7 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
         var descriptor = serviceCollection.GetServiceDescriptor(serviceType, name);
         if(descriptor == null)
         {
-            throw new Exception($"Service of type {serviceType.Name} with name {name} is not registered.");
+            throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
         }
         
         Type[]? genericArguments = null;

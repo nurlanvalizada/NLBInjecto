@@ -7,6 +7,7 @@ public class NlbServiceCollection : INlbServiceCollection
     public void AddTransient<TService, TImplementation>(string? name = null) where TImplementation : TService
     {
         _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TImplementation), NlbServiceLifetime.Transient, name));
+        
     }
 
     public void AddTransient(Type serviceType, Type implementationType, string? name = null)
@@ -70,7 +71,7 @@ public class NlbServiceCollection : INlbServiceCollection
                                                        s.ServiceType.GetGenericTypeDefinition() == genericDefinition);
         }
         
-        return descriptor ?? throw new Exception($"Service of type {serviceType.Name} with name {name} is not registered.");
+        return descriptor ?? throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
     }
 
     public IReadOnlyList<NlbServiceDescriptor> Services => _services.ToList().AsReadOnly();
