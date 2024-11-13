@@ -7,6 +7,12 @@ public interface ISingletonService
 
 public class SingletonService : ISingletonService
 {
-    private readonly Guid _guid = Guid.NewGuid();
+    public SingletonService()
+    {
+        _guid = Guid.NewGuid();
+        //Console.WriteLine("SingletonService created: " + _guid);
+    }
+    
+    private readonly Guid _guid ;
     public Guid GetGuid() => _guid;
 }

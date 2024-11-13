@@ -11,8 +11,4 @@
       <ProjectReference Include="..\NLBInjecto\NLBInjecto.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Decorator\" />
-    </ItemGroup>
-
 </Project>

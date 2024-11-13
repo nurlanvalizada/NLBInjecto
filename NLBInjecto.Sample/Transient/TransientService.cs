@@ -7,6 +7,12 @@ public interface ITransientService
 
 public class TransientService : ITransientService
 {
-    private readonly Guid _guid = Guid.NewGuid();
+    public TransientService()
+    {
+        _guid = Guid.NewGuid();
+        //Console.WriteLine("Transient Service created: " + _guid);
+    }
+
+    private readonly Guid _guid;
     public Guid GetGuid() => _guid;
 }

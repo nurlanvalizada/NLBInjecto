@@ -5,19 +5,19 @@ using NLBInjecto.Sample.Transient;
 
 namespace NLBInjecto.Sample;
 
-public class App
+public class App1
 {
-    private readonly ISingletonService _greetingService;
-    private readonly IRepository<App> _repository;
+    private readonly ISingletonService _singletonService;
+    private readonly IRepository<App1> _repository;
     private readonly IScopedService _scopedService;
     private readonly ITransientService _transientService;
 
-    public App(ISingletonService greetingService,
+    public App1(ISingletonService greetingService,
                IScopedService scopedService, 
-               IRepository<App> repository, 
+               IRepository<App1> repository, 
                ITransientService transientService)
     {
-        _greetingService = greetingService;
+        _singletonService = greetingService;
         _scopedService = scopedService;
         _repository = repository;
         _transientService = transientService;
@@ -25,7 +25,7 @@ public class App
 
     public void RunSingletonService()
     {
-        Console.WriteLine($"Singleton Service ID: {_scopedService.GetGuid()}");
+        Console.WriteLine($"Singleton Service ID: {_singletonService.GetGuid()}");
     }
     
     public void RunScopedService()

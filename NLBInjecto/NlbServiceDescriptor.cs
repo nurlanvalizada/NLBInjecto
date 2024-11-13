@@ -15,6 +15,7 @@ public class NlbServiceDescriptor
         ServiceType = serviceType;
         Factory = factory;
         Lifetime = lifetime;
+        ImplementationType = factory.Method.ReturnType;
     }
 
     public string? Name { get; }

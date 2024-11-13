@@ -1,6 +1,6 @@
 namespace NLBInjecto;
 
-public class NlbScope(NlbServiceProviderSnapshot container) : INlbServiceProvider, IDisposable
+public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProvider, IDisposable
 {
     private readonly Dictionary<Type, object> _scopedInstances = new();
 
@@ -11,11 +11,14 @@ public class NlbScope(NlbServiceProviderSnapshot container) : INlbServiceProvide
 
     public object GetService(Type serviceType, string? name = null)
     {
-        var descriptor = container.GetServiceDescriptor(serviceType, name);
+        var descriptor = serviceCollection.GetServiceDescriptor(serviceType, name);
+        if(descriptor == null)
+        {
+            throw new Exception($"Service of type {serviceType.Name} with name {name} is not registered.");
+        }
         
         Type[]? genericArguments = null;
-        // Handle open generic types
-        if (serviceType.IsGenericType)
+        if (serviceType.IsGenericType) // Handle open generic types
         {
             genericArguments = serviceType.GetGenericArguments();
         }
@@ -24,57 +27,50 @@ public class NlbScope(NlbServiceProviderSnapshot container) : INlbServiceProvide
         {
             if (!_scopedInstances.TryGetValue(serviceType, out var service))
             {
-                service = CreateInstance(descriptor.ImplementationType, genericArguments);
+                if(descriptor.Factory != null)
+                {
+                    descriptor.Implementation = descriptor.Factory(this);
+                    return descriptor.Implementation;
+                }
+                
+                service = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
                 _scopedInstances[serviceType] = service;
             }
             return service;
         }
 
-        return CreateInstance(descriptor.ImplementationType, genericArguments);
+        if(descriptor.Lifetime == NlbServiceLifetime.Singleton)
+        {
+            if(descriptor.Implementation != null)
+            {
+                return descriptor.Implementation;
+            }
+            
+            
+            // Use the factory function if available
+            if(descriptor.Factory != null)
+            {
+                descriptor.Implementation = descriptor.Factory(this);
+                return descriptor.Implementation;
+            }
+            
+            descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
+            return descriptor.Implementation;
+        }
+        
+        if(descriptor.Factory != null)
+        {
+            descriptor.Implementation = descriptor.Factory(this);
+            return descriptor.Implementation;
+        }
+
+        descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
+        return descriptor.Implementation;
     }
 
     public NlbScope CreateScope()
     {
-        return new NlbScope(container);
-    }
-
-    public object CreateInstance(Type implementationType, Type[]? genericArguments = null)
-    {
-        if(implementationType.IsGenericTypeDefinition)
-        {
-            if(genericArguments == null || genericArguments.Length == 0)
-                throw new InvalidOperationException("Generic type arguments required");
-
-            implementationType = implementationType.MakeGenericType(genericArguments);
-        }
-
-        var constructors = implementationType.GetConstructors().OrderByDescending(c => c.GetParameters().Length);
-        foreach(var constructor in constructors)
-        {
-            var parameters = constructor.GetParameters();
-            var parameterInstances = new object[parameters.Length];
-
-            bool canResolveAllParameters = true;
-            for(int i = 0; i < parameters.Length; i++)
-            {
-                try
-                {
-                    parameterInstances[i] = GetService(parameters[i].ParameterType);
-                }
-                catch(Exception exc)
-                {
-                    canResolveAllParameters = false;
-                    break;
-                }
-            }
-
-            if(canResolveAllParameters)
-            {
-                return Activator.CreateInstance(implementationType, parameterInstances);
-            }
-        }
-
-        throw new Exception($"Cannot resolve parameters for {implementationType.Name}");
+        return new NlbScope(serviceCollection);
     }
 
     public void Dispose()

@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLBInjecto", "NLBInjecto\NL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLBInjecto.Sample", "NLBInjecto.Sample\NLBInjecto.Sample.csproj", "{59ABFBD5-4A53-403A-8F80-3550137E0644}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLBInjecto.Tests", "NLBInjecto.Tests\NLBInjecto.Tests.csproj", "{56843D72-A370-46DB-8AAA-ED5447C1220A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{59ABFBD5-4A53-403A-8F80-3550137E0644}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59ABFBD5-4A53-403A-8F80-3550137E0644}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59ABFBD5-4A53-403A-8F80-3550137E0644}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56843D72-A370-46DB-8AAA-ED5447C1220A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56843D72-A370-46DB-8AAA-ED5447C1220A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56843D72-A370-46DB-8AAA-ED5447C1220A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56843D72-A370-46DB-8AAA-ED5447C1220A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
