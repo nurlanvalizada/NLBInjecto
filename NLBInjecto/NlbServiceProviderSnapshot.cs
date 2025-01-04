@@ -11,6 +11,12 @@ public class NlbServiceProviderSnapshot(INlbServiceCollection serviceCollection)
         {
             throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
         }
+        
+        Type[]? genericArguments = null;
+        if (serviceType.IsGenericType) // Handle open generic types
+        {
+            genericArguments = serviceType.GetGenericArguments();
+        }
 
         if(descriptor.Lifetime == NlbServiceLifetime.Singleton)
         {
@@ -22,27 +28,27 @@ public class NlbServiceProviderSnapshot(INlbServiceCollection serviceCollection)
             // Use the factory function if available
             if(descriptor.Factory != null)
             {
-                descriptor.Implementation = descriptor.Factory(this);
+                descriptor.Implementation = descriptor.Factory(this, genericArguments);
                 return descriptor.Implementation;
             }
 
-            descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService);
+            descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
             return descriptor.Implementation;
         }
 
         if(descriptor.Lifetime == NlbServiceLifetime.Scoped)
         {
-            throw new ScopeServiceCannotBeResolvedException();
+            throw new ScopeServiceCannotBeResolvedException(serviceType.Name);
         }
         
         // Use the factory function if available
         if(descriptor.Factory != null)
         {
-            descriptor.Implementation = descriptor.Factory(this);
+            descriptor.Implementation = descriptor.Factory(this, genericArguments);
             return descriptor.Implementation;
         }
 
-        descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService);
+        descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
         return descriptor.Implementation;
     }
 

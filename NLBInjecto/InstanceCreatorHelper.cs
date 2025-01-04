@@ -1,6 +1,6 @@
 namespace NLBInjecto;
 
-public class InstanceCreatorHelper
+internal static class InstanceCreatorHelper
 {
     public static object CreateInstance(Type implementationType, Func<Type, string?, object> serviceFactory, Type[]? genericArguments = null)
     {

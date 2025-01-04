@@ -1,27 +1,23 @@
 namespace NLBInjecto;
 
-public class NlbServiceDescriptor
+public class NlbServiceDescriptor(Type serviceType, Type implementationType, NlbServiceLifetime lifetime, string? name = null)
 {
-    public NlbServiceDescriptor(Type serviceType, Type implementationType, NlbServiceLifetime lifetime, string? name = null)
+    public NlbServiceDescriptor(Type serviceType, Func<INlbServiceProvider, Type[]?, object> factory, NlbServiceLifetime lifetime, string? name = null)
+        : this(serviceType, factory.Method.ReturnType, lifetime, name)
     {
-        Name = name;
-        ServiceType = serviceType;
-        ImplementationType = implementationType;
-        Lifetime = lifetime;
-    }
-    
-    public NlbServiceDescriptor(Type serviceType, Func<INlbServiceProvider, object> factory, NlbServiceLifetime lifetime)
-    {
-        ServiceType = serviceType;
         Factory = factory;
-        Lifetime = lifetime;
-        ImplementationType = factory.Method.ReturnType;
     }
 
-    public string? Name { get; }
-    public Type ServiceType { get; set; }
-    public Type ImplementationType { get; }
-    public Func<INlbServiceProvider, object>? Factory { get; }
-    public NlbServiceLifetime Lifetime { get; }
+    public string? Name { get; } = name;
+    public Type ServiceType { get; set; } = serviceType;
+    public Type ImplementationType { get; } = implementationType;
+
+    /// <summary>
+    /// Here we store the factory function that will be used to create the service instance.
+    /// Type[]? is used to pass generic arguments to the factory function.
+    /// </summary>
+    public Func<INlbServiceProvider, Type[]?, object>? Factory { get; }
+
+    public NlbServiceLifetime Lifetime { get; } = lifetime;
     public object? Implementation { get; set; }
 }

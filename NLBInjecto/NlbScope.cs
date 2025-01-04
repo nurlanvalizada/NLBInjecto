@@ -29,7 +29,7 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
             {
                 if(descriptor.Factory != null)
                 {
-                    descriptor.Implementation = descriptor.Factory(this);
+                    descriptor.Implementation = descriptor.Factory(this, genericArguments);
                     return descriptor.Implementation;
                 }
                 
@@ -46,11 +46,10 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
                 return descriptor.Implementation;
             }
             
-            
             // Use the factory function if available
             if(descriptor.Factory != null)
             {
-                descriptor.Implementation = descriptor.Factory(this);
+                descriptor.Implementation = descriptor.Factory(this, genericArguments);
                 return descriptor.Implementation;
             }
             
@@ -60,7 +59,7 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
         
         if(descriptor.Factory != null)
         {
-            descriptor.Implementation = descriptor.Factory(this);
+            descriptor.Implementation = descriptor.Factory(this, genericArguments);
             return descriptor.Implementation;
         }
 

@@ -1,3 +1,3 @@
 namespace NLBInjecto;
 
-public class ScopeServiceCannotBeResolvedException() : InvalidOperationException("Cannot resolve scoped services from root provider");
+public class ScopeServiceCannotBeResolvedException(string serviceName) : InvalidOperationException($"Cannot resolve scoped service {serviceName} from root provider");
