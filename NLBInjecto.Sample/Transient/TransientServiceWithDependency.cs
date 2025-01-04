@@ -6,16 +6,10 @@ public interface ITransientServiceWithDependency
     Guid GetGuid();
 }
 
-public class TransientServiceWithDependency : ITransientServiceWithDependency
+public class TransientServiceWithDependency(ITransientService dependency) : ITransientServiceWithDependency
 {
-    private readonly Guid _guid;
-    
-    public TransientServiceWithDependency(ITransientService dependency)
-    {
-        Dependency = dependency;
-        _guid = Guid.NewGuid();
-    }
-    
-    public ITransientService Dependency { get; }
+    private readonly Guid _guid = Guid.NewGuid();
+
+    public ITransientService Dependency { get; } = dependency;
     public Guid GetGuid() => _guid;
 }

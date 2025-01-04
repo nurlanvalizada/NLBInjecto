@@ -2,19 +2,12 @@ using NLBInjecto.Sample.Transient;
 
 namespace NLBInjecto.Sample.Decorator;
 
-public class TransientServiceDecorator : ITransientService
+public class TransientServiceDecorator(ITransientService transientService) : ITransientService
 {
-    private readonly ITransientService _transientService;
-
-    public TransientServiceDecorator(ITransientService transientService)
-    {
-        _transientService = transientService;
-    }
-
     public Guid GetGuid()
     {
-        var guid = _transientService.GetGuid();
-       Console.WriteLine("Decorated: " + guid);
+        var guid = transientService.GetGuid();
+        Console.WriteLine("Decorated transient: " + guid);
         return guid;
     }
 }

@@ -5,25 +5,36 @@ using NLBInjecto.Sample.Transient;
 
 namespace NLBInjecto.Sample;
 
-public class App2
+public class App2(ISingletonService singletonService,
+                  IScopedService scopedService,
+                  IGenericService<App1> genericService,
+                  ITransientService transientService)
 {
-    private readonly ISingletonService _singletonService;
-    private readonly ITransientService _transientService;
-
-    public App2(ISingletonService greetingService,
-                ITransientService transientService)
+    public void RunAllServices()
     {
-        _singletonService = greetingService;
-        _transientService = transientService;
+        RunSingletonService();
+        RunScopedService();
+        RunTransientService();
+        RunGenericService();
     }
-
+    
     public void RunSingletonService()
     {
-        Console.WriteLine($"Singleton Service ID: {_singletonService.GetGuid()}");
+        Console.WriteLine($"Singleton Service ID  from App2: {singletonService.GetGuid()}");
     }
-
+    
+    public void RunScopedService()
+    {
+        Console.WriteLine($"Scoped Service ID from App2: {scopedService.GetGuid()}");
+    }
+    
     public void RunTransientService()
     {
-        Console.WriteLine($"Transient Service ID: {_transientService.GetGuid()}");
+        Console.WriteLine($"Transient Service ID from App2: {transientService.GetGuid()}");
+    }
+    
+    public void RunGenericService()
+    {
+        Console.WriteLine($"Generic scoped Service ID from App2: {genericService.GetGuid()}");
     }
 }

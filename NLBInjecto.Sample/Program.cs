@@ -13,46 +13,79 @@ public static class Program
         var services = new NlbServiceCollection();
         
         services.AddSingleton<ISingletonService, SingletonService>();
+        services.AddDecorator<ISingletonService, SingletonServiceDecorator>();
+        
         services.AddScoped<IScopedService, ScopedService>();
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddTransient<ITransientService, TransientService>();
+        services.AddDecorator<IScopedService, ScopedServiceDecorator>();
+        
+        services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
+        services.AddDecorator(typeof(IGenericService<>), typeof(GenericServiceDecorator<>));
+        
+        services.AddTransient<ITransientService, TransientService>("test");
+        services.AddTransient<ITransientService>((provider, types) => new TransientServiceKeyed());
         services.AddDecorator<ITransientService, TransientServiceDecorator>();
         
-        services.AddTransient<App1, App1>();
-        services.AddTransient<App2, App2>();
+        services.AddTransient<App1>();
+        services.AddTransient<App2>();
         
         var serviceProvider = services.BuildServiceProvider();
         
-        services.AddTransient<ITransientService, TransientService>("test");
-        
         using (var scope = serviceProvider.CreateScope())
         {
-            var app1 = scope.GetService<App1>();
-            app1.RunScopedService();  // Scoped service instance #1
-            app1.RunSingletonService();
-            app1.RunTransientService();
-            Console.WriteLine("-------end-------");
+            Console.WriteLine("-------start-same-scoped-------\r\n");
+            
+            Console.WriteLine("-------App1-first-start-------");
+            var app11 = scope.GetService<App1>();
+            app11.RunAllServices();
+            Console.WriteLine("-------App1-first-end-------\r\n");
 
-            var app2 = scope.GetService<App1>();
-            app2.RunScopedService();  // Reuses Scoped service instance #1 within the same scope
-            app2.RunSingletonService();
-            app2.RunTransientService();
-            Console.WriteLine("-------end-------");
+            Console.WriteLine("-------App1-second-start-------");
+            var app12 = scope.GetService<App1>();
+            app12.RunAllServices();
+            Console.WriteLine("-------App1-second-end-------\r\n");
+           
+            Console.WriteLine("-------App2-first-start-------");
+            var app21 = scope.GetService<App2>();
+            app21.RunAllServices();
+            Console.WriteLine("-------App2-first-end-------\r\n");
+            
+            Console.WriteLine("-------App2-second-start-------");
+            var app22 = scope.GetService<App2>();
+            app22.RunAllServices();
+            Console.WriteLine("-------App2-second-end-------\r\n");
+            
+            Console.WriteLine("-------end-same-scoped-------\r\n");
         }
 
         using (var scope = serviceProvider.CreateScope())
         {
-            var app3 = scope.GetService<App1>();
-            app3.RunScopedService();  // New Scoped service instance #2 in a new scope
-            app3.RunSingletonService();
-            app3.RunTransientService();
-            Console.WriteLine("-------end-------");
+            Console.WriteLine("-------start-different-scoped-------\r\n");
+            
+            Console.WriteLine("-------App1-first-start-------");
+            var app11 = scope.GetService<App1>();
+            app11.RunAllServices();
+            Console.WriteLine("-------App1-first-end-------\r\n");
+
+            Console.WriteLine("-------App1-second-start-------");
+            var app12 = scope.GetService<App1>();
+            app12.RunAllServices();
+            Console.WriteLine("-------App1-second-end-------\r\n");
+           
+            Console.WriteLine("-------App2-first-start-------");
+            var app21 = scope.GetService<App2>();
+            app21.RunAllServices();
+            Console.WriteLine("-------App2-first-end-------\r\n");
+            
+            Console.WriteLine("-------App2-second-start-------");
+            var app22 = scope.GetService<App2>();
+            app22.RunAllServices();
+            Console.WriteLine("-------App2-second-end-------\r\n");
+            
+            Console.WriteLine("-------end-different-scoped-------\r\n");
         }
         
-        // Resolve the App service
-        var app = serviceProvider.GetService<App2>();
-        app.RunTransientService();
-        app.RunSingletonService();
+        var transientService = serviceProvider.GetService<ITransientService>("test");
+        Console.WriteLine("Transient keyed service: " + transientService.GetGuid());
 
         Console.ReadKey();
     }

@@ -7,12 +7,6 @@ public interface IScopedService
 
 public class ScopedService : IScopedService
 {
-    public ScopedService()
-    {
-        _guid = Guid.NewGuid();
-        //Console.WriteLine("Scoped Service created: " + _guid);
-    }
-
-    private readonly Guid _guid;
+    private readonly Guid _guid = Guid.NewGuid();
     public Guid GetGuid() => _guid;
 }
