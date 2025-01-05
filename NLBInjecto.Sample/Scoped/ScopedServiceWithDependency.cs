@@ -6,16 +6,10 @@ public interface IScopedServiceWithDependency
     Guid GetGuid();
 }
 
-public class ScopedServiceWithDependency : IScopedServiceWithDependency
+public class ScopedServiceWithDependency(IScopedService scopedService) : IScopedServiceWithDependency
 {
-    private readonly Guid _guid;
-    
-    public ScopedServiceWithDependency(IScopedService scopedService)
-    {
-        Dependency = scopedService;
-        _guid = Guid.NewGuid();
-    }
-    
-    public IScopedService Dependency { get; }
+    private readonly Guid _guid = Guid.NewGuid();
+
+    public IScopedService Dependency { get; } = scopedService;
     public Guid GetGuid() => _guid;
 }
