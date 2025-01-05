@@ -13,7 +13,6 @@ public interface INlbServiceCollection
     
     #endregion
     
-    
     #region Scoped Services
     
     void AddScoped<TService, TImplementation>(string? name = null) where TImplementation : TService;
@@ -24,7 +23,6 @@ public interface INlbServiceCollection
     void AddScoped(Type serviceType, Func<INlbServiceProvider, Type[]?, object> factory, string? name = null);
     
     #endregion
-    
     
     #region Singleton Services
     
