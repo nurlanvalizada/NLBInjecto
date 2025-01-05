@@ -57,7 +57,7 @@ My motivation for built such repository is to show how we can build complex syst
 2. Open the solution in Visual Studio or JetBrains Rider.
 3. Build the project. You’re set to include this library in your application.
 
-*(Alternatively, once I publish this as a NuGet package, I will add instructions here. Probably it will be like `dotnet add package NlbInjecto`.)*
+*(Alternatively, it is available as a NuGet package. You can add it to your projects like this `dotnet add package NLBInjecto`.)*
 
 ---
 
@@ -181,4 +181,4 @@ Feel free to open an **issue** if you find a bug or have a feature request.
 
 
 ## License
-This project is licensed under the MIT License. You are free to use it in both commercial and open-source software. See the LICENSE file for details.
+This project is licensed under the MIT License. You are free to use it in both commercial and open-source software.
