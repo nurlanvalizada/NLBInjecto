@@ -1,3 +1,5 @@
+using NLBInjecto.Exceptions;
+using NLBInjecto.Sample.Decorator;
 using NLBInjecto.Sample.Transient;
 
 namespace NLBInjecto.Tests;
@@ -21,14 +23,14 @@ public class TransientServiceTests
     }
     
     [Fact]
-    public void TransientService_ShouldThrowExceptionWhenServiceNotRegistered()
+    public void TransientService_ShouldThrowExceptionWhenServiceIsNotRegistered()
     {
         // Arrange
         var serviceCollection = new NlbServiceCollection();
         var serviceProvider = serviceCollection.BuildServiceProvider();
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => serviceProvider.GetService<ITransientService>());
+        Assert.Throws<NlbServiceIsNotRegisteredException>(() => serviceProvider.GetService<ITransientService>());
     }
 
     [Fact]
@@ -47,5 +49,27 @@ public class TransientServiceTests
         Assert.NotNull(service);
         Assert.NotNull(service.Dependency);
         Assert.True(service.Dependency is TransientService);
+    }
+    
+    [Fact]
+    public void TransientService_ShouldDecorateServiceCorrectly()
+    {
+        // Arrange
+        var serviceCollection = new NlbServiceCollection();
+        serviceCollection.AddTransient<ITransientService, TransientService>();
+        serviceCollection.AddDecorator<ITransientService, TransientServiceDecorator>();
+        var serviceProvider = serviceCollection.BuildServiceProvider();
+        
+        // Act
+        var service = serviceProvider.GetService<ITransientService>();
+        
+        // Assert
+        Assert.NotNull(service);
+        Assert.IsType<TransientServiceDecorator>(service);
+         
+        var decorator = service as TransientServiceDecorator;
+        Assert.NotNull(decorator);
+        Assert.NotNull(decorator.InnerService);
+        Assert.True(decorator.InnerService is TransientService);
     }
 }
