@@ -33,7 +33,7 @@ internal static class InstanceCreatorHelper
                 }
                 catch(Exception exc)
                 {
-                    Console.WriteLine("\r\n Exception info" + exc.Message + "\r\n");
+                    Console.WriteLine("\r\n Exception info: " + exc.Message + "\r\n");
                     canResolveAllParameters = false;
                     break;
                 }

@@ -32,7 +32,7 @@ public class NlbServiceDescriptor(Type serviceType, Type implementationType, Nlb
     {
         if(type.IsGenericType)
         {
-            _closedGenericImplementations.Add(type, implementation);
+            _closedGenericImplementations[type] = implementation;
         }
         else
         {

@@ -6,7 +6,7 @@ public static class NlbServiceCollectionExtensions
 {
     public static NlbServiceDescriptor GetServiceDescriptor(this IReadOnlyList<NlbServiceDescriptor> services, Type serviceType, string? name = null)
     {
-        var descriptor = services.FirstOrDefault(s => s.ServiceType == serviceType && (name is null || s.Name == name));
+        var descriptor = services.FirstOrDefault(s => s.ServiceType == serviceType && s.Name == name);
         if(descriptor == null && serviceType.IsGenericType)
         {
             // If no direct match is found and the requested service is a closed generic,
