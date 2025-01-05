@@ -19,5 +19,26 @@ public class NlbServiceDescriptor(Type serviceType, Type implementationType, Nlb
     public Func<INlbServiceProvider, Type[]?, object>? Factory { get; }
 
     public NlbServiceLifetime Lifetime { get; } = lifetime;
-    public object? Implementation { get; set; }
+    private object? Implementation { get; set; }
+    
+    public object? GetImplementation(Type type)
+    {
+        return type.IsGenericType 
+            ? _closedGenericImplementations.GetValueOrDefault(type) 
+            : Implementation;
+    }
+    
+    public void SetImplementation(Type type, object implementation)
+    {
+        if(type.IsGenericType)
+        {
+            _closedGenericImplementations.Add(type, implementation);
+        }
+        else
+        {
+            Implementation = implementation;
+        }
+    }
+    
+    private readonly Dictionary<Type, object> _closedGenericImplementations = new();
 }

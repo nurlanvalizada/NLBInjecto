@@ -1,3 +1,5 @@
+using NLBInjecto.Exceptions;
+
 namespace NLBInjecto;
 
 internal static class InstanceCreatorHelper
@@ -7,7 +9,7 @@ internal static class InstanceCreatorHelper
         if(implementationType.IsGenericTypeDefinition)
         {
             if(genericArguments == null || genericArguments.Length == 0)
-                throw new InvalidOperationException("Generic type arguments required");
+                throw new NlbGenericServiceRequireGenericParametersException(implementationType.Name);
 
             implementationType = implementationType.MakeGenericType(genericArguments);
         }
@@ -25,7 +27,7 @@ internal static class InstanceCreatorHelper
                 {
                     parameterInstances[i] = serviceFactory(parameters[i].ParameterType, null);
                 }
-                catch(ScopeServiceCannotBeResolvedException)
+                catch(NlbScopedServiceCannotBeResolvedException)
                 {
                     throw;
                 }

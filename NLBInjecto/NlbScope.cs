@@ -1,6 +1,8 @@
+using NLBInjecto.Exceptions;
+
 namespace NLBInjecto;
 
-public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProvider, IDisposable
+public class NlbScope(IReadOnlyList<NlbServiceDescriptor> serviceDescriptors) : INlbServiceProvider, IDisposable
 {
     private readonly Dictionary<Type, object> _scopedInstances = new();
 
@@ -11,10 +13,10 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
 
     public object GetService(Type serviceType, string? name = null)
     {
-        var descriptor = serviceCollection.GetServiceDescriptor(serviceType, name);
+        var descriptor = serviceDescriptors.GetServiceDescriptor(serviceType, name);
         if(descriptor == null)
         {
-            throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
+            throw new NlbServiceIsNotRegisteredException(serviceType.Name, name);
         }
         
         Type[]? genericArguments = null;
@@ -23,53 +25,62 @@ public class NlbScope(INlbServiceCollection serviceCollection) : INlbServiceProv
             genericArguments = serviceType.GetGenericArguments();
         }
 
-        if (descriptor.Lifetime == NlbServiceLifetime.Scoped)
+        switch(descriptor.Lifetime)
         {
-            if (!_scopedInstances.TryGetValue(serviceType, out var service))
+            case NlbServiceLifetime.Scoped:
             {
+                if(_scopedInstances.TryGetValue(serviceType, out var service)) 
+                    return service;
+                
+                service = descriptor.Factory != null 
+                    ? descriptor.Factory(this, genericArguments) 
+                    : InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
+                
+                descriptor.SetImplementation(serviceType, service);
+                _scopedInstances[serviceType] = service;
+                return service;
+            }
+            case NlbServiceLifetime.Singleton:
+                var implementationSingletonAvailable = descriptor.GetImplementation(serviceType);
+                if(implementationSingletonAvailable != null)
+                {
+                    return implementationSingletonAvailable;
+                }
+
                 if(descriptor.Factory != null)
                 {
-                    descriptor.Implementation = descriptor.Factory(this, genericArguments);
-                    return descriptor.Implementation;
+                    var implementationSingletonFactoryBased = descriptor.Factory(this, genericArguments);
+                    descriptor.SetImplementation(serviceType, implementationSingletonFactoryBased);
+                    return implementationSingletonFactoryBased;
                 }
                 
-                service = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
-                _scopedInstances[serviceType] = service;
-            }
-            return service;
-        }
+                var implementationSingleton = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
+                descriptor.SetImplementation(serviceType, implementationSingleton);
+                return implementationSingleton;
+            case NlbServiceLifetime.Transient:
+                if(descriptor.Factory != null)
+                {
+                    var implementationTransientFactoryBased = descriptor.Factory(this, genericArguments);
+                    descriptor.SetImplementation(serviceType, implementationTransientFactoryBased);
+                    return implementationTransientFactoryBased;
+                }
 
-        if(descriptor.Lifetime == NlbServiceLifetime.Singleton)
-        {
-            if(descriptor.Implementation != null)
-            {
-                return descriptor.Implementation;
-            }
-            
-            // Use the factory function if available
-            if(descriptor.Factory != null)
-            {
-                descriptor.Implementation = descriptor.Factory(this, genericArguments);
-                return descriptor.Implementation;
-            }
-            
-            descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
-            return descriptor.Implementation;
+                var implementationTransient = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
+                descriptor.SetImplementation(serviceType, implementationTransient);
+                return implementationTransient;
+            default:
+                throw new NlbInvalidServiceLifetimeException(descriptor.Lifetime);
         }
-        
-        if(descriptor.Factory != null)
-        {
-            descriptor.Implementation = descriptor.Factory(this, genericArguments);
-            return descriptor.Implementation;
-        }
-
-        descriptor.Implementation = InstanceCreatorHelper.CreateInstance(descriptor.ImplementationType, GetService, genericArguments);
-        return descriptor.Implementation;
     }
 
     public NlbScope CreateScope()
     {
-        return new NlbScope(serviceCollection);
+        return new NlbScope(serviceDescriptors);
+    }
+
+    public int GetAllServiceCount()
+    {
+        return serviceDescriptors.Count;
     }
 
     public void Dispose()

@@ -1,3 +1,5 @@
+using NLBInjecto.Exceptions;
+
 namespace NLBInjecto;
 
 public class NlbServiceCollection : INlbServiceCollection
@@ -16,7 +18,7 @@ public class NlbServiceCollection : INlbServiceCollection
         _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TService), NlbServiceLifetime.Transient, name));
     }
 
-    public void AddTransient<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null) where TService : class
+    public void AddTransient<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null)
     {
         _services.Add(new NlbServiceDescriptor(typeof(TService), factory, NlbServiceLifetime.Transient, name));
     }
@@ -51,7 +53,7 @@ public class NlbServiceCollection : INlbServiceCollection
         _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TService), NlbServiceLifetime.Scoped, name));
     }
     
-    public void AddScoped<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null) where TService : class
+    public void AddScoped<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null)
     {
         _services.Add(new NlbServiceDescriptor(typeof(TService), factory, NlbServiceLifetime.Scoped, name));
     }
@@ -86,7 +88,7 @@ public class NlbServiceCollection : INlbServiceCollection
         _services.Add(new NlbServiceDescriptor(typeof(TService), typeof(TService), NlbServiceLifetime.Singleton, name));
     }
     
-    public void AddSingleton<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null) where TService : class
+    public void AddSingleton<TService>(Func<INlbServiceProvider, Type[]?, object> factory, string? name = null)
     {
         _services.Add(new NlbServiceDescriptor(typeof(TService), factory, NlbServiceLifetime.Singleton, name));
     }
@@ -115,9 +117,9 @@ public class NlbServiceCollection : INlbServiceCollection
     
     public void AddDecorator(Type serviceType, Type decoratorType, string? name = null)
     {
-        var descriptor = GetServiceDescriptor(serviceType, name);
+        var descriptor = ((IReadOnlyList<NlbServiceDescriptor>)_services).GetServiceDescriptor(serviceType, name);
 
-        var isFactoryBased = descriptor is { Factory: not null, Implementation: null };
+        var isFactoryBased = descriptor.Factory != null;
         
         var originalImplementationType = descriptor.ImplementationType;
         var originalLifetime = descriptor.Lifetime;
@@ -147,7 +149,7 @@ public class NlbServiceCollection : INlbServiceCollection
             if(decoratorType.IsGenericTypeDefinition)
             {
                 if(genericTypeArguments == null || genericTypeArguments.Length == 0)
-                    throw new InvalidOperationException("Generic type arguments required");
+                    throw new NlbGenericServiceRequireGenericParametersException(decoratorType.Name);
 
                 decoratorType = decoratorType.MakeGenericType(genericTypeArguments);
             }
@@ -157,27 +159,11 @@ public class NlbServiceCollection : INlbServiceCollection
 
         }, originalLifetime));
     }
-    
-
-    public NlbServiceDescriptor GetServiceDescriptor(Type serviceType, string? name = null)
-    {
-        var descriptor = _services.FirstOrDefault(s => s.ServiceType == serviceType && s.Name == name);
-        if(descriptor == null && serviceType.IsGenericType)
-        {
-            // If no direct match is found and the requested service is a closed generic,
-            // look for an open generic definition that matches the generic type definition.
-            var genericDefinition = serviceType.GetGenericTypeDefinition();
-            descriptor = _services.FirstOrDefault(s => s.ServiceType.IsGenericTypeDefinition &&
-                                                       s.ServiceType.GetGenericTypeDefinition() == genericDefinition);
-        }
-
-        return descriptor ?? throw new InvalidOperationException($"Service of type {serviceType.Name} with name {name} is not registered.");
-    }
 
     public IReadOnlyList<NlbServiceDescriptor> Services => _services.ToList().AsReadOnly();
 
     public INlbServiceProvider BuildServiceProvider()
     {
-        return new NlbServiceProviderSnapshot(this);
+        return new NlbServiceProviderSnapshot(Services);
     }
 }

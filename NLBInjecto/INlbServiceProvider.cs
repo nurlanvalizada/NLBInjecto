@@ -6,4 +6,6 @@ public interface INlbServiceProvider
     object GetService(Type serviceType, string? name = null);
 
     NlbScope CreateScope();
+    
+    int GetAllServiceCount();
 }
