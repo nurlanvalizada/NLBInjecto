@@ -1,12 +1,13 @@
-# NlbInjecto - Custom Dependency Injection Container
+# NLBInjecto - Lightweight DI Container
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NuGet](https://img.shields.io/badge/nuget-1.0.0-blue.svg)](https://www.nuget.org/packages/NLBInjecto/1.0.0)
 
-NlbInjecto is a **lightweight**, **extensible**, and **testable** dependency injection (DI) container for .NET applications. Built from scratch to help you **understand** DI internals, **customize** registrations, and **extend** behavior beyond the built-in .NET DI framework.
+NlbInjecto is a **custom**, **lightweight**, **extensible**, and **testable** dependency injection (DI) container for .NET applications. Built from scratch to help you **understand** DI internals, **customize** registrations, and **extend** behavior beyond the built-in .NET DI framework.
 
 ## Table of Contents
 
-- [NlbInjecto - Custom Dependency Injection Container](#nlbinjecto---custom-dependency-injection-container)
+- [NLBInjecto - Lightweight DI Container](#nlbinjecto---lightweight-di-container)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Motivation](#motivation)
@@ -181,4 +182,4 @@ Feel free to open an **issue** if you find a bug or have a feature request.
 
 
 ## License
-This project is licensed under the MIT License. You are free to use it in both commercial and open-source software.
+This project is licensed under the [MIT LICENSE](LICENSE). You are free to use it in both commercial and open-source software.
